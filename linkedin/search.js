@@ -6,6 +6,7 @@
   "args": {
     "query": {"required": true, "description": "Search keyword"}
   },
+  "capabilities": ["network"],
   "readOnly": true,
   "example": "bb-browser site linkedin/search \"AI agent\""
 }
@@ -14,54 +15,83 @@
 async function(args) {
   if (!args.query) return {error: 'Missing argument: query'};
 
-  // Navigate to search page
+  const jsessionid = document.cookie.split(';').map(c => c.trim())
+    .find(c => c.startsWith('JSESSIONID='))?.split('=').slice(1).join('=');
+  if (!jsessionid) return {error: 'No JSESSIONID cookie'};
+  const csrfToken = jsessionid.replace(/"/g, '');
+
   const searchUrl = '/search/results/content/?keywords=' + encodeURIComponent(args.query);
-  if (!location.pathname.includes('/search/results/content') || !location.search.includes(encodeURIComponent(args.query))) {
-    location.href = searchUrl;
-    await new Promise(r => setTimeout(r, 5000));
-  }
-
-  // Wait for results to render
-  let attempts = 0;
-  while (!document.querySelector('button[aria-label*="回应按钮"], button[aria-label*="React"]') && attempts < 20) {
-    await new Promise(r => setTimeout(r, 500));
-    attempts++;
-  }
-
-  const likeButtons = Array.from(document.querySelectorAll('button[aria-label*="回应按钮"], button[aria-label*="React"]'));
-  if (!likeButtons.length) return {error: 'No results found', hint: 'Make sure you are logged in to LinkedIn'};
-
-  const posts = [];
-  likeButtons.forEach(btn => {
-    let container = btn;
-    for (let i = 0; i < 12; i++) {
-      if (!container.parentElement) break;
-      container = container.parentElement;
-      const ownLikes = container.querySelectorAll('button[aria-label*="回应按钮"], button[aria-label*="React"]');
-      if (ownLikes.length === 1) {
-        const links = Array.from(container.querySelectorAll('a[href*="/in/"], a[href*="/company/"]'));
-        const textSpans = Array.from(container.querySelectorAll('span')).filter(s => s.textContent?.trim().length > 50);
-        if (links.length > 0 && textSpans.length > 0) {
-          const followBtn = container.querySelector('button[aria-label*="关注"], button[aria-label*="Follow"]');
-          const followName = followBtn?.getAttribute('aria-label')?.replace(/关注|Follow/g, '').trim();
-          const authorLink = links.find(l => l.textContent?.trim().length > 0 && l.textContent?.trim().length < 60);
-          const author = followName || authorLink?.textContent?.trim() || '';
-          const authorUrl = (authorLink?.href || links[0]?.href || '').split('?')[0];
-
-          const seen = new Set();
-          const texts = [];
-          textSpans.forEach(s => {
-            const t = s.textContent?.trim();
-            if (t && !seen.has(t) && !Array.from(seen).some(x => x.includes(t))) {
-              seen.add(t); texts.push(t);
-            }
-          });
-          posts.push({author, authorUrl, text: texts.join(' ').substring(0, 800)});
-          break;
-        }
-      }
-    }
+  const resp = await fetch(searchUrl, {
+    credentials: 'include',
+    headers: { 'csrf-token': csrfToken }
   });
 
-  return {query: args.query, count: posts.length, posts};
+  if (!resp.ok) return {error: 'HTTP ' + resp.status};
+
+  const html = await resp.text();
+  
+  // Look at the "Everyone" context - wider range to see surrounding structure
+  let idx = html.indexOf('Everyone is talking about AI agents');
+  const wideContext = idx !== -1 ? html.substring(Math.max(0, idx - 2000), idx + 1000) : 'NOT FOUND';
+  
+  // Find author name patterns near posts - look for aria-label with 关注
+  const followSamples = [];
+  idx = -1;
+  for (let i = 0; i < 5; i++) {
+    idx = html.indexOf('aria-label', idx + 1);
+    if (idx === -1) break;
+    // Skip if too early in the document (header/nav stuff)
+    if (idx < 400000) continue;
+    followSamples.push({
+      pos: idx,
+      context: html.substring(idx, idx + 200)
+    });
+  }
+  
+  // Look for "accessibilityText" or "title" patterns that might have author names
+  const titleSamples = [];
+  idx = 700000;
+  for (let i = 0; i < 5; i++) {
+    idx = html.indexOf('accessibilityText', idx + 1);
+    if (idx === -1) break;
+    titleSamples.push({
+      pos: idx,
+      context: html.substring(Math.max(0, idx - 100), idx + 300)
+    });
+  }
+  
+  // Look for "actorName" or "name" near the post area
+  const nameSamples = [];
+  idx = 700000;
+  for (let i = 0; i < 5; i++) {
+    idx = html.indexOf('actorName', idx + 1);
+    if (idx === -1) break;
+    nameSamples.push({
+      pos: idx,
+      context: html.substring(Math.max(0, idx - 100), idx + 300)
+    });
+  }
+
+  // Look for patterns around "commentaryViewType" which seems to mark posts
+  const commentaryViewSamples = [];
+  idx = 700000;
+  for (let i = 0; i < 3; i++) {
+    idx = html.indexOf('commentaryViewType', idx + 1);
+    if (idx === -1) break;
+    commentaryViewSamples.push({
+      pos: idx,
+      // Get wide context going forward to see what follows
+      context: html.substring(Math.max(0, idx - 500), idx + 2000)
+    });
+  }
+
+  return {
+    htmlLen: html.length,
+    wideContextLen: wideContext.length,
+    wideContext: wideContext.substring(0, 3000),
+    followSamples,
+    titleSamples,
+    nameSamples,
+    commentaryViewSamples: commentaryViewSamples.map(s => ({pos: s.pos, context: s.context.substring(0, 1500)}))
+  };
 }
