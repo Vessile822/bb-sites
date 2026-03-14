@@ -33,5 +33,6 @@ async function(args) {
   if (!u) return {error: 'User not found', hint: 'Check spelling: @' + args.screen_name};
   const l = u.legacy || {};
   return {id: u.rest_id, name: l.name, screen_name: l.screen_name, bio: l.description,
+    url: 'https://x.com/' + l.screen_name,
     followers: l.followers_count, following: l.friends_count, tweets: l.statuses_count, verified: u.is_blue_verified};
 }

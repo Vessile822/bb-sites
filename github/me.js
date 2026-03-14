@@ -15,6 +15,7 @@ async function(args) {
   const d = await resp.json();
   return {
     login: d.login, name: d.name, bio: d.bio,
+    url: d.html_url || ('https://github.com/' + d.login),
     public_repos: d.public_repos, followers: d.followers, following: d.following,
     created_at: d.created_at
   };

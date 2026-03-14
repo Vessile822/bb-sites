@@ -53,7 +53,9 @@ async function(args) {
           seen.add(tw.rest_id);
           const u = tw.core?.user_results?.result;
           const nt = tw.note_tweet?.note_tweet_results?.result?.text;
-          tweets.push({id: tw.rest_id, author: u?.legacy?.screen_name || u?.core?.screen_name, text: nt || l.full_text || '',
+          const screenName = u?.legacy?.screen_name || u?.core?.screen_name;
+          tweets.push({id: tw.rest_id, author: screenName, text: nt || l.full_text || '',
+            url: 'https://x.com/' + (screenName || '_') + '/status/' + tw.rest_id,
             likes: l.favorite_count, retweets: l.retweet_count, in_reply_to: l.in_reply_to_status_id_str, created_at: l.created_at});
         }
       }
@@ -65,7 +67,9 @@ async function(args) {
             seen.add(tw.rest_id);
             const u = tw.core?.user_results?.result;
             const nt = tw.note_tweet?.note_tweet_results?.result?.text;
-            tweets.push({id: tw.rest_id, author: u?.legacy?.screen_name || u?.core?.screen_name, text: nt || l.full_text || '',
+            const screenName = u?.legacy?.screen_name || u?.core?.screen_name;
+            tweets.push({id: tw.rest_id, author: screenName, text: nt || l.full_text || '',
+              url: 'https://x.com/' + (screenName || '_') + '/status/' + tw.rest_id,
               likes: l.favorite_count, retweets: l.retweet_count, in_reply_to: l.in_reply_to_status_id_str, created_at: l.created_at});
           }
         }

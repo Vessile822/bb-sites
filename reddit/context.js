@@ -57,7 +57,7 @@ async function(args) {
   while (cur) { chain.unshift(cur); cur = comments.find(c => c.id === cur.parent_id); }
 
   return {
-    post: {id: post.name, title: post.title, author: post.author},
+    post: {id: post.name, title: post.title, author: post.author, url: 'https://www.reddit.com' + (post.permalink || '')},
     target_comment: target,
     ancestor_chain: chain
   };

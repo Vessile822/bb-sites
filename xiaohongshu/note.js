@@ -52,6 +52,7 @@ async function(args) {
   if (!note) return {error: 'Note not found in response'};
   return {
     note_id: noteId, title: note.title, desc: note.desc, type: note.type,
+    url: 'https://www.xiaohongshu.com/explore/' + noteId,
     author: note.user?.nickname, author_id: note.user?.user_id,
     likes: note.interact_info?.liked_count, comments: note.interact_info?.comment_count,
     collects: note.interact_info?.collected_count, shares: note.interact_info?.share_count,

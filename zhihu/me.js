@@ -18,6 +18,7 @@ async function(args) {
     id: u.id,
     uid: u.uid,
     name: u.name,
+    url: 'https://www.zhihu.com/people/' + u.url_token,
     url_token: u.url_token,
     headline: u.headline,
     gender: u.gender === 1 ? 'male' : u.gender === 0 ? 'female' : 'unknown',

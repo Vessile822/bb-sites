@@ -33,6 +33,7 @@ async function(args) {
   return {
     name: d.data.name,
     id: d.data.id,
+    url: 'https://www.reddit.com/user/' + d.data.name,
     comment_karma: d.data.comment_karma,
     link_karma: d.data.link_karma,
     total_karma: d.data.total_karma,

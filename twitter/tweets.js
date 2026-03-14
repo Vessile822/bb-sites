@@ -80,11 +80,15 @@ async function(args) {
         const rtw = rt.tweet || rt; const rl = rtw.legacy || {};
         const ru = rtw.core?.user_results?.result;
         const rnt = rtw.note_tweet?.note_tweet_results?.result?.text;
-        tweets.push({id: tw.rest_id, type: 'retweet', author: u?.legacy?.screen_name || u?.core?.screen_name,
+        const authorName = u?.legacy?.screen_name || u?.core?.screen_name;
+        tweets.push({id: tw.rest_id, type: 'retweet', author: authorName,
+          url: 'https://x.com/' + (authorName || '_') + '/status/' + tw.rest_id,
           rt_author: ru?.legacy?.screen_name || ru?.core?.screen_name, text: rnt || rl.full_text || '',
           likes: rl.favorite_count, retweets: rl.retweet_count, created_at: l.created_at});
       } else {
-        tweets.push({id: tw.rest_id, type: 'tweet', author: u?.legacy?.screen_name || u?.core?.screen_name,
+        const authorName = u?.legacy?.screen_name || u?.core?.screen_name;
+        tweets.push({id: tw.rest_id, type: 'tweet', author: authorName,
+          url: 'https://x.com/' + (authorName || '_') + '/status/' + tw.rest_id,
           text: nt || l.full_text || '', likes: l.favorite_count, retweets: l.retweet_count,
           in_reply_to: l.in_reply_to_status_id_str || undefined, created_at: l.created_at});
       }

@@ -63,7 +63,8 @@ async function(args) {
         title: r.title,
         author: r.owner?.name,
         view: r.stat?.view,
-        duration: r.duration
+        duration: r.duration,
+        url: 'https://www.bilibili.com/video/' + r.bvid
       }));
     }
   } catch(e) {}

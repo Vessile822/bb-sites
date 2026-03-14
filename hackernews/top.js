@@ -29,7 +29,9 @@ async function(args) {
     count: items.length,
     posts: items.map((item, i) => ({
       rank: i + 1, id: item.id, title: item.title,
-      url: item.url, author: item.by, score: item.score,
+      url: item.url || null,
+      hn_url: 'https://news.ycombinator.com/item?id=' + item.id,
+      author: item.by, score: item.score,
       comments: item.descendants || 0, time: item.time
     }))
   };

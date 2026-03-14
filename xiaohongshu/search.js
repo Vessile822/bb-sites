@@ -48,6 +48,7 @@ async function(args) {
   const notes = (captured.data?.items || []).map(i => ({
     id: i.id, xsec_token: i.xsec_token,
     title: i.note_card?.display_title, type: i.note_card?.type,
+    url: 'https://www.xiaohongshu.com/explore/' + i.id,
     author: i.note_card?.user?.nickname,
     likes: i.note_card?.interact_info?.liked_count
   }));

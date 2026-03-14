@@ -23,6 +23,7 @@ async function(args) {
     repo: args.repo, state, count: issues.length,
     issues: issues.map(i => ({
       number: i.number, title: i.title, state: i.state,
+      url: i.html_url,
       author: i.user?.login, labels: i.labels?.map(l => l.name),
       comments: i.comments, created_at: i.created_at,
       is_pr: !!i.pull_request

@@ -76,8 +76,10 @@ async function(args) {
       if (!tw.rest_id) continue;
       const u = tw.core?.user_results?.result;
       const nt = tw.note_tweet?.note_tweet_results?.result?.text;
-      tweets.push({id: tw.rest_id, author: u?.legacy?.screen_name || u?.core?.screen_name,
+      const screenName = u?.legacy?.screen_name || u?.core?.screen_name;
+      tweets.push({id: tw.rest_id, author: screenName,
         name: u?.legacy?.name || u?.core?.name,
+        url: 'https://x.com/' + (screenName || '_') + '/status/' + tw.rest_id,
         text: nt || l.full_text || '', likes: l.favorite_count, retweets: l.retweet_count,
         in_reply_to: l.in_reply_to_status_id_str || undefined, created_at: l.created_at});
     }

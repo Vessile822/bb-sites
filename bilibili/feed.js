@@ -30,6 +30,7 @@ async function(args) {
     const base = {
       id: item.id_str,
       type: item.type,
+      url: 'https://www.bilibili.com/opus/' + item.id_str,
       author: author?.name,
       author_mid: author?.mid,
       author_face: author?.face,

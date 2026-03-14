@@ -40,7 +40,7 @@ async function(args) {
 
   const comments = await fetchComments(item.kids, 0);
   return {
-    post: {id: item.id, title: item.title, url: item.url, author: item.by, score: item.score, comments_count: item.descendants || 0, time: item.time, text: item.text},
+    post: {id: item.id, title: item.title, url: item.url || null, hn_url: 'https://news.ycombinator.com/item?id=' + item.id, author: item.by, score: item.score, comments_count: item.descendants || 0, time: item.time, text: item.text},
     comments
   };
 }

@@ -46,6 +46,7 @@ async function(args) {
   if (!captured?.success) return {error: captured?.msg || 'User posts fetch failed', hint: 'Not logged in?'};
   const notes = (captured.data?.notes || []).map(n => ({
     note_id: n.note_id, title: n.display_title, type: n.type,
+    url: 'https://www.xiaohongshu.com/explore/' + n.note_id,
     likes: n.interact_info?.liked_count, time: n.last_update_time
   }));
   return {user_id: args.user_id, count: notes.length, has_more: captured.data?.has_more, notes};
