@@ -17,21 +17,33 @@ async function(args) {
 
   let keyword = args.keyword;
 
-  // 1. Handle potential already-encoded input or mangled strings (Big5 fix)
+  // 1. Handle potential already-encoded input or mangled strings (Encoding fix)
   if (keyword.includes('%')) {
     try { keyword = decodeURIComponent(keyword); } catch (e) { }
   }
+
+  // Use a more robust check for non-ASCII characters and handle multiple encodings
   if (/[^\u0000-\u007F]/.test(keyword)) {
     try {
       const bytes = new Uint8Array([...keyword].map(c => c.charCodeAt(0) & 0xFF));
-      const decodedBig5 = new TextDecoder('big5').decode(bytes);
-      if (decodedBig5 !== keyword && !decodedBig5.includes('\uFFFD')) {
-        keyword = decodedBig5;
-      } else {
-        const decodedGBK = new TextDecoder('gbk').decode(bytes);
-        if (decodedGBK !== keyword && !decodedGBK.includes('\uFFFD')) keyword = decodedGBK;
+      
+      const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
+      try {
+        utf8Decoder.decode(bytes);
+      } catch (e) {
+        const gbkDecoder = new TextDecoder('gbk');
+        const decodedGBK = gbkDecoder.decode(bytes);
+        if (!decodedGBK.includes('\uFFFD')) {
+          keyword = decodedGBK;
+        } else {
+          const big5Decoder = new TextDecoder('big5');
+          const decodedBig5 = big5Decoder.decode(bytes);
+          if (!decodedBig5.includes('\uFFFD')) keyword = decodedBig5;
+        }
       }
-    } catch (e) { }
+    } catch (e) { 
+      console.warn('Encoding conversion failed:', e);
+    }
   }
 
   // Helper: Extract items from 1688 initialization data
